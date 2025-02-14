@@ -1,0 +1,42 @@
+/* styles.css */
+.editor-container {
+  position: relative; /* Needed for absolute positioning of suggestions */
+  border: 1px solid #ccc; /* Example border */
+  padding: 5px;
+  min-height: 100px; /* Example min-height */
+}
+
+.editor {
+  min-height: 100px;
+  cursor: text;
+}
+
+.suggestions {
+  position: absolute;
+  top: 100%; /* Position below the editor */
+  left: 0;
+  width: 100%;
+  background-color: white;
+  border: 1px solid #ccc;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  z-index: 1; /* Ensure suggestions are on top */
+}
+
+.suggestions li {
+  padding: 5px;
+  cursor: pointer;
+}
+
+.suggestions li.highlighted {
+  background-color: #eee;
+}
+
+.autocompleted-entry {
+  color: green; /* Example color */
+  font-style: italic; /* Example style */
+  pointer-events: none; /* Make it uneditable */
+}
+
+/* Add more styles as needed */
