@@ -21,7 +21,7 @@ const AutocompleteEditor = () => {
   const getMatchString = (blockText, anchorOffset) => {
     const matchStart = blockText.lastIndexOf('<>', anchorOffset);
     if (matchStart === -1) return null;
-    return blockText.slice(matchStart + 2, anchorOffset);
+    return blockText.slice(matchStart + 2, anchorOffset).trim();
   };
 
   useEffect(() => {
@@ -30,10 +30,14 @@ const AutocompleteEditor = () => {
     const anchorOffset = selection.getAnchorOffset();
     const blockText = currentContent.getBlockForKey(selection.getStartKey()).getText();
 
-    const matchString = getMatchString(blockText, anchorOffset);
+    let matchString = getMatchString(blockText, anchorOffset);
     if (matchString) {
-      setShowSuggestions(true);
-      const filteredSuggestions = suggestions.filter(s => s.startsWith(matchString));
+      matchString = matchString.toLowerCase();
+      const filteredSuggestions = suggestions.filter(s =>
+        s.toLowerCase().startsWith(matchString)
+      );
+
+      setShowSuggestions(filteredSuggestions.length > 0);
       setAutocomplete(filteredSuggestions);
       setHighlightedIndex(0);
     } else {
@@ -108,25 +112,14 @@ const AutocompleteEditor = () => {
       return 'handled';
     }
 
-    if (e.keyCode === 13) {
+    if (e.keyCode === 13 || e.keyCode === 9) {
       if (showSuggestions && autocomplete.length > 0) {
-        const selectedSuggestion = autocomplete[highlightedIndex];
-        if (selectedSuggestion) {
-          insertSuggestion(selectedSuggestion);
-        }
+        insertSuggestion(autocomplete[highlightedIndex]);
         return 'handled';
       }
-
       return getDefaultKeyBinding(e);
     }
 
-    if (e.keyCode === 9) {
-      const selectedSuggestion = autocomplete[highlightedIndex];
-      if (selectedSuggestion) {
-        insertSuggestion(selectedSuggestion);
-      }
-      return 'handled';
-    }
     return getDefaultKeyBinding(e);
   };
 
@@ -173,34 +166,34 @@ const AutocompleteEditor = () => {
           onKeyDown={handleBackspace}
           placeholder="Start typing..."
         />
-      {showSuggestions && autocomplete.length > 0 && (
-        <ul
-          style={{
-            zIndex: 1,
-            backgroundColor: 'white',
-            border: '1px solid #ccc',
-            listStyleType: 'none',
-            padding: 0,
-            margin: 0,
-            position: 'absolute',
-            width: '100%'
-          }}
-        >
-          {autocomplete.map((suggestion, index) => (
-            <li
-              key={suggestion}
-              style={{
-                padding: '8px',
-                backgroundColor: index === highlightedIndex ? '#ddd' : 'white',
-                cursor: 'pointer',
-              }}
-              onMouseDown={() => insertSuggestion(suggestion)}
-            >
-              {suggestion}
-            </li>
-          ))}
-        </ul>
-      )}
+        {showSuggestions && autocomplete.length > 0 && (
+          <ul
+            style={{
+              zIndex: 1,
+              backgroundColor: 'white',
+              border: '1px solid #ccc',
+              listStyleType: 'none',
+              padding: 0,
+              margin: 0,
+              position: 'absolute',
+              width: '100%',
+            }}
+          >
+            {autocomplete.map((suggestion, index) => (
+              <li
+                key={suggestion}
+                style={{
+                  padding: '8px',
+                  backgroundColor: index === highlightedIndex ? '#ddd' : 'white',
+                  cursor: 'pointer',
+                }}
+                onMouseDown={() => insertSuggestion(suggestion)}
+              >
+                {suggestion}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );
