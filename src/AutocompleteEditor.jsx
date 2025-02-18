@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Editor, EditorState, Modifier, SelectionState, getDefaultKeyBinding, RichUtils } from 'draft-js';
 import './styles.css';
+import 'draft-js/dist/Draft.css';
+
 const suggestions = [
   'apple', 'banana', 'cherry', 'date', 'orange', 'grape', 'kiwi', 'melon', 'pear', 'plum', 'watermelon',
   'ruby', 'javascript', 'python', 'html', 'css', 'react', 'nodejs', 'vue', 'angular', 'typescript',
@@ -76,6 +78,7 @@ const AutocompleteEditor = () => {
       focusKey: blockKey,
       focusOffset: matchStart + 2 + suggestion.length,
     });
+
     setEditorState(EditorState.forceSelection(newEditorState, newSelectionState));
   };
 
@@ -87,6 +90,14 @@ const AutocompleteEditor = () => {
     });
   };
 
+  const applyStyle = (style) => {
+    setEditorState(RichUtils.toggleInlineStyle(editorState, style));
+  };
+
+  const applyBlockType = (blockType) => {
+    setEditorState(RichUtils.toggleBlockType(editorState, blockType));
+  };
+
   const keyBindingFn = (e) => {
     if (e.keyCode === 38) {
       handleArrowKey('up');
@@ -96,7 +107,20 @@ const AutocompleteEditor = () => {
       handleArrowKey('down');
       return 'handled';
     }
-    if (e.keyCode === 13 || e.keyCode === 9) {
+
+    if (e.keyCode === 13) {
+      if (showSuggestions && autocomplete.length > 0) {
+        const selectedSuggestion = autocomplete[highlightedIndex];
+        if (selectedSuggestion) {
+          insertSuggestion(selectedSuggestion);
+        }
+        return 'handled';
+      }
+
+      return getDefaultKeyBinding(e);
+    }
+
+    if (e.keyCode === 9) {
       const selectedSuggestion = autocomplete[highlightedIndex];
       if (selectedSuggestion) {
         insertSuggestion(selectedSuggestion);
@@ -128,45 +152,56 @@ const AutocompleteEditor = () => {
   };
 
   return (
-    <div style={{ position: 'relative' }}>
-      <Editor
-        editorState={editorState}
-        onChange={handleChange}
-        handleKeyCommand={(command) => 'not-handled'}
-        keyBindingFn={keyBindingFn}
-        placeholder="This is the Editor"
-        ref={editorRef}
-        onKeyDown={handleBackspace}
-      />
+    <div style={{ position: 'relative', margin: '5em 0 5em 5em' }}>
+      <button onClick={() => applyBlockType('header-one')}>H1</button>
+      <button onClick={() => applyBlockType('header-two')}>H2</button>
+      <button onClick={() => applyBlockType('header-three')}>H3</button>
+      <button onClick={() => applyStyle('BOLD')}>Bold</button>
+      <button onClick={() => applyStyle('ITALIC')}>Italic</button>
+      <button onClick={() => applyStyle('UNDERLINE')}>Underline</button>
+      <button onClick={() => applyBlockType('blockquote')}>Blockquote</button>
+      <button onClick={() => applyBlockType('unordered-list-item')}>UL</button>
+      <button onClick={() => applyBlockType('ordered-list-item')}>OL</button>
+      <button onClick={() => applyBlockType('code-block')}>Code Block</button>
+      <div className="editor">
+        <Editor
+          editorState={editorState}
+          onChange={handleChange}
+          handleKeyCommand={(command) => 'not-handled'}
+          keyBindingFn={keyBindingFn}
+          ref={editorRef}
+          onKeyDown={handleBackspace}
+          placeholder="Start typing..."
+        />
       {showSuggestions && autocomplete.length > 0 && (
-        <ul style={{
-          zIndex: 1,
-          backgroundColor: 'white',
-          border: '1px solid #ccc',
-          listStyleType: 'none',
-          padding: 0,
-          margin: 0,
-          position: 'absolute',
-          top: '100%',
-          left: 0,
-          width: '100%',
-          boxSizing: 'border-box',
-        }}>
+        <ul
+          style={{
+            zIndex: 1,
+            backgroundColor: 'white',
+            border: '1px solid #ccc',
+            listStyleType: 'none',
+            padding: 0,
+            margin: 0,
+            position: 'absolute',
+            width: '100%'
+          }}
+        >
           {autocomplete.map((suggestion, index) => (
             <li
               key={suggestion}
               style={{
-                  padding: '8px',
-                  backgroundColor: index === highlightedIndex ? '#ddd' : 'white',
-                  cursor: 'pointer',
+                padding: '8px',
+                backgroundColor: index === highlightedIndex ? '#ddd' : 'white',
+                cursor: 'pointer',
               }}
               onMouseDown={() => insertSuggestion(suggestion)}
             >
               {suggestion}
             </li>
           ))}
-      </ul>
-    )}
+        </ul>
+      )}
+      </div>
     </div>
   );
 };
